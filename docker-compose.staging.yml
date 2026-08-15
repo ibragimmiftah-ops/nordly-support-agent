@@ -89,7 +89,7 @@ services:
     deploy:
       resources:
         limits:
-        memory: 192M
+          memory: 192M
 
   migrate:
     image: ${APP_IMAGE:-nordly-support-agent:staging}
