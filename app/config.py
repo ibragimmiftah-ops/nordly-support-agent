@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     )
     database_password_file: str | None = Field(default=None, alias="DATABASE_PASSWORD_FILE")
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
+    cache_ttl_seconds: int = Field(default=300, alias="CACHE_TTL_SECONDS", ge=0)
 
     @staticmethod
     def _read_secret(path: str, name: str) -> str:

@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from app.agent.schemas import Incident
+from app.cache import get_or_set, invalidate
 from app.config import settings
 from app.database import get_connection
 
@@ -19,32 +20,42 @@ class IncidentRepository:
     ) -> list[Incident]:
         """Get active incidents, optionally filtered by product area."""
         limit = max(1, min(limit, 50))
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            if product_area:
-                cursor.execute(
-                    """
-                    SELECT incident_id, title, product_area, status, severity,
-                           description, started_at, resolved_at, affected_customers
-                    FROM incidents
-                    WHERE tenant_id = ? AND status != 'resolved' AND product_area = ?
-                    ORDER BY started_at DESC LIMIT ?
-                    """,
-                    (tenant_id, product_area, limit),
-                )
-            else:
-                cursor.execute(
-                    """
-                    SELECT incident_id, title, product_area, status, severity,
-                           description, started_at, resolved_at, affected_customers
-                    FROM incidents
-                    WHERE tenant_id = ? AND status != 'resolved'
-                    ORDER BY started_at DESC LIMIT ?
-                    """,
-                    (tenant_id, limit),
-                )
-            rows = cursor.fetchall()
-            return [IncidentRepository._row_to_incident(row) for row in rows]
+
+        def _load() -> list[dict[str, Any]]:
+            with get_connection() as conn:
+                cursor = conn.cursor()
+                if product_area:
+                    cursor.execute(
+                        """
+                        SELECT incident_id, title, product_area, status, severity,
+                               description, started_at, resolved_at, affected_customers
+                        FROM incidents
+                        WHERE tenant_id = ? AND status != 'resolved' AND product_area = ?
+                        ORDER BY started_at DESC LIMIT ?
+                        """,
+                        (tenant_id, product_area, limit),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        SELECT incident_id, title, product_area, status, severity,
+                               description, started_at, resolved_at, affected_customers
+                        FROM incidents
+                        WHERE tenant_id = ? AND status != 'resolved'
+                        ORDER BY started_at DESC LIMIT ?
+                        """,
+                        (tenant_id, limit),
+                    )
+                rows = cursor.fetchall()
+            return [dict(row) for row in rows]
+
+        cached = get_or_set(
+            tenant_id,
+            "incidents:active",
+            (product_area or "all", str(limit)),
+            _load,
+        )
+        return [IncidentRepository._row_to_incident(row) for row in cached]
 
     @staticmethod
     def get_incident(incident_id: str, tenant_id: str = settings.demo_tenant_id) -> Incident | None:
@@ -114,6 +125,7 @@ class IncidentRepository:
                 ),
             )
             conn.commit()
+        invalidate(tenant_id, "incidents")
 
     @staticmethod
     def _row_to_incident(row: Any) -> Incident:

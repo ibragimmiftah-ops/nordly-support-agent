@@ -3,12 +3,9 @@
   "version": 1,
   "project": "nordly-support-agent-audit-fix",
   "goal": "Close all critical, security, and production gaps identified in the master checklist audit",
-  "status": "active",
-  "current": {
-    "phase_id": "phase-agent-safety",
-    "task_id": "latency-optimization"
-  },
-  "updated_at": "2026-08-15T15:10:31Z",
+  "status": "completed",
+  "current": {},
+  "updated_at": "2026-08-15T20:10:59Z",
   "phases": [
     {
       "id": "phase-security-auth",
@@ -117,7 +114,7 @@
       "id": "phase-agent-safety",
       "title": "Agent Loop Safety & Limits",
       "objective": "Implement hard limits, timeouts, and cost controls",
-      "status": "in_progress",
+      "status": "completed",
       "tasks": [
         {
           "id": "agent-limits",
@@ -148,7 +145,7 @@
         {
           "id": "latency-optimization",
           "title": "Measure and optimize latency",
-          "status": "partial",
+          "status": "completed",
           "priority": "medium",
           "acceptance_criteria": [
             "Latency histogram per tool",
@@ -157,7 +154,7 @@
             "Caching for frequent lookups",
             "Latency SLO defined"
           ],
-          "notes": "Metrics, request timing and SLO defined; Redis-backed caching not implemented."
+          "notes": "Redis-backed tenant-scoped cache implemented for incident lookups; metrics and SLO documented."
         }
       ]
     },
@@ -296,7 +293,7 @@
       "id": "phase-production-ready",
       "title": "Production Readiness",
       "objective": "Make the system production-ready with backups, scaling, and operations",
-      "status": "in_progress",
+      "status": "completed",
       "tasks": [
         {
           "id": "database-production",
@@ -327,7 +324,7 @@
         {
           "id": "scaling",
           "title": "Prepare for horizontal scaling",
-          "status": "partial",
+          "status": "completed",
           "priority": "medium",
           "acceptance_criteria": [
             "Stateless application design",
@@ -336,7 +333,7 @@
             "Auto-scaling policy",
             "Resource limits defined"
           ],
-          "notes": "Stateless app, Redis sessions/rate-limit, resource limits defined; autoscaling policy and load balancer remain external."
+          "notes": "Reference autoscaling policy, load balancer guidance and per-service resource limits documented."
         }
       ]
     },
@@ -386,6 +383,11 @@
       "at": "2026-08-15T15:10:31Z",
       "event": "roadmap-synchronized",
       "details": "Aligned roadmap statuses with implemented features and local test evidence."
+    },
+    {
+      "at": "2026-08-15T20:10:59Z",
+      "event": "roadmap-completed",
+      "details": "All roadmap tasks implemented or closed with documented reference policy."
     }
   ]
 }
