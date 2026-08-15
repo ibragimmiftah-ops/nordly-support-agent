@@ -1,4 +1,4 @@
-"""Tests for the deterministic Nordly demo dataset."""
+"""Tests for the deterministic Nordly development dataset."""
 
 import json
 

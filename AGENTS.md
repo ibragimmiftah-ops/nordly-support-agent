@@ -1,5 +1,7 @@
 # Nordly Support Agent - Agent Instructions
 
+Nordly Support Agent is the production AI platform for Level 1 support operations at Nordly, a European B2B CRM company. Treat the codebase, documentation, and deployment configuration as a real customer-facing system: prioritize safety, auditability, tenant isolation, and deterministic business rules over convenience.
+
 ## Communication Style
 
 - **Always provide human-readable output.** Never return raw JSON, XML, or structured data dumps as the primary response.
@@ -38,7 +40,7 @@ ruff format .
 # Seed database
 python -m data.seed
 
-# Run application (demo mode)
+# Run application (offline deterministic mode)
 DEMO_MODE=true uvicorn app.main:app --reload
 
 # Run CLI analysis

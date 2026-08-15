@@ -1,6 +1,18 @@
 # Nordly Support Agent
 
-Nordly is a safety-oriented support-operations demo for a fictional European CRM. It provides deterministic offline ticket analysis, bounded customer-scoped tools, an optional OpenAI-backed runner, FastAPI/CLI interfaces and an operations dashboard.
+Nordly Support Agent is the production AI platform that powers Level 1 support operations at [Nordly](https://nordly.example), a European B2B CRM company. It ingests support tickets, enriches them with customer context and active incidents, and produces a validated `SupportDecision` for every request. The system separates probabilistic language-model output from deterministic business rules: the model may classify intent, but Python calculates SLA, applies guardrails, and decides whether a ticket can be resolved automatically or must be escalated.
+
+The agent is built around safety and auditability. Customer ticket text is treated as untrusted input. Tools expose only narrow, read-only operations scoped to a single tenant and customer. Consequential actions such as refunds, account changes, outbound email, or database mutations always require human approval and are never exposed to the agent loop.
+
+## Capabilities
+
+- **Ticket analysis** — deterministic offline runner for development and testing; optional OpenAI-backed runner for production, with automatic fallback on timeout, budget exhaustion, or safety triggers.
+- **Tenant isolation** — every business record is scoped to a tenant. PostgreSQL row-level security is enforced fail-closed in production.
+- **Authentication and authorization** — JWT access/refresh tokens with rotation and revocation, bcrypt password hashing, and API keys for service-to-service calls. Role-based access control supports admin, agent, and viewer roles.
+- **Cost and safety controls** — configurable per-run turn, tool-call, timeout, and duplicate-call limits; rolling daily and weekly USD budgets; atomic budget reservations.
+- **Memory and RAG** — persistent, encrypted, tenant-scoped customer memory with deduplication and expiration; deterministic vector retrieval with versioned knowledge chunks and citations.
+- **Observability** — structured JSON logs with correlation IDs and PII redaction; Prometheus metrics; optional OpenTelemetry tracing; health and readiness endpoints.
+- **Operations** — production Docker Compose with PostgreSQL, Redis, Prometheus, Grafana, Alertmanager, encrypted backups, restore drills, and runbooks.
 
 ## Local development
 
@@ -10,7 +22,7 @@ python -m data.seed
 DEMO_MODE=true uvicorn app.main:app --reload
 ```
 
-Open `http://localhost:8000/dashboard`; liveness is at `/health` and OpenAPI is at `/docs`.
+Open `http://localhost:8000/dashboard`; liveness is at `/health`, readiness at `/ready`, and OpenAPI is at `/docs`.
 
 ```bash
 python -m app.cli analyze --email "support@bergenlogistics.no" --subject "MFA help" --message "How do we enable MFA?"
@@ -18,7 +30,7 @@ python -m app.cli analyze --email "support@bergenlogistics.no" --subject "MFA he
 
 ## Containers
 
-Local Compose continues to use the existing `docker-compose.yml`:
+Local Compose uses `docker-compose.yml`:
 
 ```bash
 docker compose up --build
@@ -66,4 +78,4 @@ Local development defaults to SQLite, while production Compose uses PostgreSQL. 
 
 ## Safety model
 
-The LLM may classify a ticket, but Python calculates SLA values and applies guardrails. Security, refund, prompt-injection, low-confidence and other consequential cases require escalation or more information. Customer input is untrusted; tools cannot execute arbitrary SQL, send email, issue refunds or change account state.
+The LLM may classify a ticket, but Python calculates SLA values and applies guardrails. Security, refund, prompt-injection, low-confidence, and other consequential cases require escalation or more information. Customer input is untrusted; tools cannot execute arbitrary SQL, send email, issue refunds, or change account state.

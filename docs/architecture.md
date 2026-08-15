@@ -9,10 +9,11 @@ updated ticket.
 
 ## Modes
 
-`DEMO_MODE=true` uses `DemoSupportAgentRunner`, which is deterministic and
-offline. `DEMO_MODE=false` uses OpenAI Agents SDK 0.21.0 with typed
-`SupportDecision` output and async `Runner.run`, and falls back to the safe demo
-runner when the provider is unavailable.
+`DEMO_MODE=true` uses `DemoSupportAgentRunner`, a deterministic offline runner
+used for local development, CI, and safe fallback. `DEMO_MODE=false` uses OpenAI
+Agents SDK 0.21.0 with typed `SupportDecision` output and async `Runner.run`,
+and falls back to the deterministic runner when the provider is unavailable,
+budget is exhausted, or safety triggers fire.
 
 ## Boundaries
 

@@ -93,7 +93,7 @@ def test_database_password_placeholder_requires_file():
 
 
 def test_production_secrets_are_loaded_from_files(tmp_path):
-    """Production rejects demo JWT and resolves supported secret files."""
+    """Production rejects the default development JWT and resolves supported secret files."""
     jwt = tmp_path / "jwt"
     api = tmp_path / "api"
     bootstrap = tmp_path / "bootstrap"
@@ -119,7 +119,7 @@ def test_production_secrets_are_loaded_from_files(tmp_path):
     assert configured.production_bootstrap_configured
 
 
-def test_production_rejects_demo_jwt_secret():
+def test_production_rejects_default_jwt_secret():
     with pytest.raises(ValidationError, match="JWT_SECRET"):
         Settings(_env_file=None, DEMO_MODE=False)
 

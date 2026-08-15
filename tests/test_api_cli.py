@@ -12,7 +12,7 @@ from data.seed import seed_all
 
 @pytest.fixture
 def api_client(tmp_path, monkeypatch):
-    """Create an isolated demo API client."""
+    """Create an isolated offline API client."""
     database_path = tmp_path / "api.db"
     monkeypatch.setattr(settings, "database_url", f"sqlite:///{database_path}")
     init_database()
@@ -48,7 +48,11 @@ def test_api_ticket_workflow_and_bounded_lists(api_client):
 
 
 def test_api_not_found_and_health(api_client):
-    """Health and missing-resource responses are stable."""
+    """Health, system status and missing-resource responses are stable."""
     assert api_client.get("/health").json()["status"] == "healthy"
+    status = api_client.get("/api/v1/system/status")
+    assert status.status_code == 200
+    assert status.json()["service"] == "nordly-support-agent"
+    assert status.json()["mode"] == "offline"
     assert api_client.get("/api/v1/tickets/missing").status_code == 404
     assert api_client.get("/api/v1/customers/C-NL-9999").status_code == 404

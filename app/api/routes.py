@@ -54,6 +54,18 @@ async def health_check():
     return {"status": "healthy", "service": "nordly-support-agent"}
 
 
+@router.get("/api/v1/system/status")
+async def system_status():
+    """Return public runtime status for the operations dashboard."""
+    from app.config import settings
+
+    return {
+        "service": "nordly-support-agent",
+        "mode": "offline" if settings.is_demo_mode else "live",
+        "version": "0.1.0",
+    }
+
+
 @router.get("/ready")
 def readiness_check():
     """Confirm the database can execute a bounded query before accepting traffic."""
@@ -73,7 +85,7 @@ def readiness_check():
 
 @router.post("/api/v1/auth/login")
 async def login(request: LoginRequest):
-    """Exchange valid demo or provisioned credentials for a JWT pair."""
+    """Exchange valid offline or provisioned credentials for a JWT pair."""
     principal = AuthRepository.authenticate_password(
         request.tenant_id, request.username, request.password
     )

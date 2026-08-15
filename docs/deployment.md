@@ -19,7 +19,7 @@
 
 Production always sets `DEMO_MODE=false`. Set both `BOOTSTRAP_ADMIN_USERNAME` and
 `BOOTSTRAP_ADMIN_TENANT` only for the initial admin bootstrap; remove all bootstrap
-settings after the account exists. Startup never creates demo credentials in production.
+settings after the account exists. Startup never creates offline development credentials in production.
 
 ## Scaling and load balancing
 

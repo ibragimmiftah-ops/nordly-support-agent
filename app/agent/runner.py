@@ -1,6 +1,6 @@
-"""Agent runners for demo and live modes.
+"""Agent runners for offline and live modes.
 
-DemoSupportAgentRunner: deterministic offline runner for testing.
+DemoSupportAgentRunner: deterministic offline runner for development, CI, and fallback.
 OpenAISupportAgentRunner: production runner using OpenAI Agents SDK.
 """
 
@@ -204,9 +204,10 @@ class SupportAgentRunner(ABC):
 
 
 class DemoSupportAgentRunner(SupportAgentRunner):
-    """Deterministic demo runner with scenario-based logic.
+    """Deterministic offline runner with scenario-based logic.
 
-    Requires no API key and produces consistent results for testing.
+    Requires no API key and produces consistent results for development,
+    automated tests, and safe production fallback.
     """
 
     def __init__(self, safety_monitor: AgentSafetyMonitor | None = None) -> None:
@@ -483,9 +484,9 @@ class DemoSupportAgentRunner(SupportAgentRunner):
             category=category,
             priority=priority,
             sentiment=sentiment,
-            summary=f"Demo analysis: {subject}",
-            identified_problem=f"Demo mode analysis for ticket {ticket_id}",
-            investigation_summary="This is a demo-mode deterministic analysis.",
+            summary=f"Deterministic analysis: {subject}",
+            identified_problem=f"Offline analysis for ticket {ticket_id}",
+            investigation_summary="This is a deterministic offline analysis.",
             resolution_status=resolution_status,
             confidence=confidence,
             reply_draft=reply_draft,

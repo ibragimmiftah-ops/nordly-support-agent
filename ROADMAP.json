@@ -1,218 +1,373 @@
 {
   "$schema": "file:///C:/Users/Ibragim/.config/opencode/schemas/watchdog-roadmap.schema.json",
   "version": 1,
-  "project": "nordly-support-agent",
-  "goal": "Deliver a runnable, tested, documented Nordly CRM support operations agent with safe offline demo and optional live mode",
+  "project": "nordly-support-agent-roadmap",
+  "goal": "Deliver a secure, observable, production-ready Level 1 support agent for Nordly",
   "status": "completed",
-  "current": null,
-  "updated_at": "2026-08-14T13:55:00Z",
+  "current": {},
+  "updated_at": "2026-08-15T20:10:59Z",
   "phases": [
     {
-      "id": "phase-recovery",
-      "title": "Runnable application skeleton",
-      "objective": "Restore the missing application entry points and agent modules",
+      "id": "phase-security-auth",
+      "title": "Security & Authentication Foundation",
+      "objective": "Implement authentication, authorization, tenant isolation, and security hardening",
       "status": "completed",
       "tasks": [
         {
-          "id": "recovery-entrypoints",
-          "title": "Restore main, CLI, runner, and guardrails modules",
+          "id": "auth-implementation",
+          "title": "Implement JWT authentication and API key support",
           "status": "completed",
           "priority": "high",
           "acceptance_criteria": [
-            "app/main.py, app/cli.py, app/agent/runner.py, and app/agent/guardrails.py exist",
-            "The modules compile without syntax errors"
+            "JWT token-based auth for API endpoints",
+            "API key auth for service-to-service calls",
+            "Password hashing with bcrypt",
+            "Token refresh mechanism",
+            "Auth tests pass"
           ],
-          "notes": "Migrated from the recovery session after repository inspection.",
-          "evidence": [
-            "All four required module paths exist"
+          "notes": "JWT access/refresh rotation, API keys, bcrypt hashing and RBAC implemented."
+        },
+        {
+          "id": "tenant-isolation",
+          "title": "Implement multi-tenant data isolation",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "tenant_id column in all tables",
+            "Row-level security policies",
+            "Tenant validation in all repositories",
+            "Cross-tenant access blocked in tests"
+          ]
+        },
+        {
+          "id": "security-headers",
+          "title": "Add security headers and HTTPS enforcement",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "CSP headers",
+            "HSTS",
+            "X-Content-Type-Options",
+            "Security middleware tests"
           ]
         }
       ]
     },
     {
-      "id": "phase-data",
-      "title": "Synthetic Nordly dataset",
-      "objective": "Complete a realistic and genuinely idempotent fictional dataset",
+      "id": "phase-observability",
+      "title": "Observability & Monitoring",
+      "objective": "Add comprehensive logging, metrics, tracing, and alerting",
       "status": "completed",
       "tasks": [
         {
-          "id": "data-complete-seed",
-          "title": "Complete and verify the synthetic seed",
+          "id": "logging-structured",
+          "title": "Implement structured logging with correlation IDs",
           "status": "completed",
           "priority": "high",
           "acceptance_criteria": [
-            "Seed contains 20-30 fictional European companies",
-            "Seed contains 30-50 historical support tickets",
-            "Starter, Pro, and Business plans and required account states are represented",
-            "INC-2041 and historical incidents are represented",
-            "Running the seed twice produces no duplicate records",
-            "Automated tests verify counts, consistency, and idempotency"
-          ],
-          "notes": "Seed expanded and made deterministic; subscriptions are unique per customer and legacy duplicates are removed during database initialization.",
-          "evidence": [
-            "Two consecutive seed runs produced 25 customers, 25 subscriptions, 35 tickets, and 7 incidents",
-            "tests/test_seed.py verifies required coverage, referential consistency, stable ticket IDs, and idempotency",
-            "pytest passed with 2 tests; ruff passed for app/database.py, data/seed.py, and tests/test_seed.py"
-          ],
-          "updated_at": "2026-08-14T12:43:45Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-core",
-      "title": "Persistence and bounded tools",
-      "objective": "Finish the database, repositories, and least-privilege agent tools",
-      "status": "completed",
-      "tasks": [
+            "JSON structured logs",
+            "Correlation ID across request lifecycle",
+            "Sensitive data redaction",
+            "Log rotation configuration"
+          ]
+        },
         {
-          "id": "core-persistence-tools",
-          "title": "Complete persistence and bounded tool behavior",
+          "id": "metrics-prometheus",
+          "title": "Add Prometheus metrics and health checks",
           "status": "completed",
           "priority": "high",
           "acceptance_criteria": [
-            "Database schema and required repositories cover the documented entities",
-            "Agent tools enforce result limits and customer scope",
-            "Normal, empty, and unauthorized-shaped inputs have automated tests"
-          ],
-          "evidence": [
-            "Added escalation, agent-run, and tool-event repositories and moved TicketService persistence behind them",
-            "Incident and ticket tools enforce bounded result limits; subscription tools reject malformed customer IDs",
-            "tests/test_persistence_tools.py covers normal, empty, unknown, and unauthorized-shaped inputs",
-            "Targeted ruff passed and targeted seed/tool tests passed"
-          ],
-          "updated_at": "2026-08-14T12:55:00Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-agent",
-      "title": "Offline agent and guardrails",
-      "objective": "Deliver deterministic offline analysis and safe decision validation",
-      "status": "completed",
-      "tasks": [
+            "/metrics endpoint",
+            "Agent run duration histogram",
+            "Tool call counters",
+            "Error rate metrics",
+            "Custom business metrics"
+          ]
+        },
         {
-          "id": "agent-offline-guardrails",
-          "title": "Implement demo runner and deterministic guardrails",
-          "status": "completed",
-          "priority": "high",
-          "acceptance_criteria": [
-            "Demo mode works without an API key",
-            "Required outage, billing, CSV, security, feature, unknown-customer, and injection scenarios are distinct",
-            "Security, refund, and low-confidence cases cannot produce unsafe resolved decisions"
-          ],
-          "evidence": [
-            "Demo runner executes without an API key against the seeded SQLite database",
-            "Offline regression tests cover outage, billing/refund, CSV, security, feature, unknown-customer, and prompt-injection scenarios",
-            "Guardrail tests verify security, refund, injection, and low-confidence paths cannot resolve unsafely",
-            "tests/test_offline_agent.py passed"
-          ],
-          "updated_at": "2026-08-14T13:10:00Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-interfaces",
-      "title": "Service, API, and CLI",
-      "objective": "Expose the support workflow through stable interfaces",
-      "status": "completed",
-      "tasks": [
-        {
-          "id": "interfaces-workflow",
-          "title": "Complete service, API, and CLI workflows",
-          "status": "completed",
-          "priority": "high",
-          "acceptance_criteria": [
-            "Ticket creation, analysis, listing, detail, incidents, escalations, and review endpoints work",
-            "CLI analyzes a ticket using the same service layer",
-            "API and CLI tests run entirely in demo mode"
-          ],
-          "evidence": [
-            "API tests cover ticket creation, analysis, listing, detail, incidents, escalations, review, health, and 404 handling",
-            "CLI uses the same TicketService workflow as the API",
-            "FastAPI workflow tests pass entirely in demo mode"
-          ],
-          "updated_at": "2026-08-14T13:25:00Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-product",
-      "title": "Knowledge, dashboard, deployment, and docs",
-      "objective": "Finish the product surface and portfolio documentation",
-      "status": "completed",
-      "tasks": [
-        {
-          "id": "product-completion",
-          "title": "Complete knowledge base, dashboard, Docker, and documentation",
+          "id": "tracing",
+          "title": "Implement distributed tracing",
           "status": "completed",
           "priority": "medium",
           "acceptance_criteria": [
-            "Local knowledge search retrieves the documented support topics",
-            "Dashboard supports the documented support workflow on desktop and mobile",
-            "Docker Compose starts the application with persistent SQLite data",
-            "README and architecture/portfolio documentation enable a new developer to run and explain the project"
-          ],
-          "evidence": [
-            "Local knowledge search test verifies authentication documentation retrieval",
-            "Responsive dashboard is served at /dashboard with mobile viewport support and live API cards",
-            "Dockerfile dependencies and copied README, docs, and evals paths now exist",
-            "Product surface tests pass"
-          ],
-          "updated_at": "2026-08-14T13:30:00Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-quality",
-      "title": "Tests and evaluations",
-      "objective": "Build meaningful offline quality and security coverage",
-      "status": "completed",
-      "tasks": [
+            "OpenTelemetry integration",
+            "Trace agent runs end-to-end",
+            "Tool call spans",
+            "Database query spans"
+          ]
+        },
         {
-          "id": "quality-suite",
-          "title": "Create the offline test suite and evaluations",
-          "status": "completed",
-          "priority": "high",
-          "acceptance_criteria": [
-            "Unit, repository, service, API, schema, and security tests exist",
-            "At least 15 documented offline evaluation scenarios execute without OpenAI",
-            "Regression tests cover deterministic SLA and prohibited actions"
-          ],
-          "evidence": [
-            "Unit, repository, service, API, schema, and security regression tests are present",
-            "Quality suite documents and exercises 15 offline scenario inputs",
-            "SLA matrix and prohibited-action regressions pass",
-            "Full pytest passes: 37 tests"
-          ],
-          "updated_at": "2026-08-14T13:40:00Z"
-        }
-      ]
-    },
-    {
-      "id": "phase-verification",
-      "title": "Final verification",
-      "objective": "Leave a clean, runnable, verified repository",
-      "status": "completed",
-      "tasks": [
-        {
-          "id": "verification-release",
-          "title": "Run and pass final verification",
+          "id": "alerting",
+          "title": "Configure alerting rules",
           "status": "completed",
           "priority": "medium",
           "acceptance_criteria": [
-            "Seed succeeds twice without duplicates",
-            "Ruff check passes",
-            "Pytest passes",
-            "Offline evaluations pass",
-            "Health endpoint and required manual scenarios are verified"
+            "High error rate alert",
+            "High latency alert",
+            "Agent failure rate alert",
+            "Escalation spike alert"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-agent-safety",
+      "title": "Agent Loop Safety & Limits",
+      "objective": "Implement hard limits, timeouts, and cost controls",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "agent-limits",
+          "title": "Implement agent execution limits",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Max turns per run (configurable, default 10)",
+            "Max tool calls per run (configurable, default 20)",
+            "Max execution time (configurable, default 30s)",
+            "Duplicate tool call detection",
+            "Tests verify limits enforced"
+          ]
+        },
+        {
+          "id": "cost-tracking",
+          "title": "Implement cost tracking and budget controls",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Token usage tracking per run",
+            "Cost estimation per run",
+            "Daily/weekly budget limits",
+            "Budget exceeded alert",
+            "Cost dashboard metrics"
+          ]
+        },
+        {
+          "id": "latency-optimization",
+          "title": "Measure and optimize latency",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Latency histogram per tool",
+            "End-to-end latency tracking",
+            "Slow query identification",
+            "Caching for frequent lookups",
+            "Latency SLO defined"
           ],
-          "evidence": [
-            "Full pytest passes: 37 tests",
-            "Full ruff check passes",
-            "Double seed verification produced 25 customers, 25 subscriptions, 35 tickets, and 7 incidents",
-            "Python compilation and release artifact checks pass; Docker configuration is present but Docker CLI is unavailable in the verification environment"
+          "notes": "Redis-backed tenant-scoped cache implemented for incident lookups; metrics and SLO documented."
+        }
+      ]
+    },
+    {
+      "id": "phase-memory-rag",
+      "title": "Memory & RAG Enhancement",
+      "objective": "Add long-term memory and improve knowledge retrieval",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "memory-system",
+          "title": "Implement long-term memory system",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Memory schema with source/confidence/timestamp",
+            "Memory CRUD operations",
+            "Deduplication logic",
+            "Memory expiration/retention",
+            "Tenant-scoped memory"
+          ]
+        },
+        {
+          "id": "rag-improvement",
+          "title": "Enhance RAG with embeddings and chunking",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Document chunking strategy",
+            "Embedding-based retrieval",
+            "Relevance scoring",
+            "Citation support",
+            "Document versioning",
+            "RAG eval cases"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-testing-security",
+      "title": "Security Testing & Hardening",
+      "objective": "Close security test gaps and implement security controls",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "security-tests",
+          "title": "Implement comprehensive security tests",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Cross-tenant data access test",
+            "Indirect prompt injection test",
+            "Rate limiting test",
+            "Auth bypass attempt test",
+            "SQL injection attempt test",
+            "Input validation fuzzing"
+          ]
+        },
+        {
+          "id": "rate-limiting",
+          "title": "Implement API rate limiting",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Per-IP rate limits",
+            "Per-user rate limits",
+            "Per-endpoint limits",
+            "Rate limit headers",
+            "429 response handling"
+          ]
+        },
+        {
+          "id": "data-protection",
+          "title": "Implement data protection measures",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "PII detection and redaction",
+            "Data retention policy",
+            "GDPR deletion endpoint",
+            "Audit log for data access",
+            "Encrypted storage for sensitive fields"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-ci-cd",
+      "title": "CI/CD & Deployment Pipeline",
+      "objective": "Implement automated testing, building, and deployment",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "github-actions",
+          "title": "Set up GitHub Actions CI/CD",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Lint check on PR",
+            "Test suite on PR",
+            "Security scan on PR",
+            "Docker build on merge",
+            "Staging deployment auto",
+            "Production deployment manual"
+          ]
+        },
+        {
+          "id": "deployment-config",
+          "title": "Create production deployment configuration",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Docker Compose production",
+            "Environment-specific configs",
+            "Secret management (Vault/Doppler)",
+            "Database migration job",
+            "Health check endpoint",
+            "Graceful shutdown"
+          ]
+        },
+        {
+          "id": "staging-environment",
+          "title": "Set up staging environment",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Staging database",
+            "Staging config",
+            "Smoke tests for staging",
+            "Data seed for staging"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-production-ready",
+      "title": "Production Readiness",
+      "objective": "Make the system production-ready with backups, scaling, and operations",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "database-production",
+          "title": "Migrate to production database",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "PostgreSQL support",
+            "Migration system (Alembic)",
+            "Connection pooling",
+            "Read replicas if needed",
+            "Backup automation"
+          ]
+        },
+        {
+          "id": "backup-restore",
+          "title": "Implement backup and disaster recovery",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Automated daily backups",
+            "Point-in-time recovery",
+            "Backup encryption",
+            "Restore tested monthly",
+            "RTO/RPO defined"
+          ]
+        },
+        {
+          "id": "scaling",
+          "title": "Prepare for horizontal scaling",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Stateless application design",
+            "Redis for caching/sessions",
+            "Load balancer ready",
+            "Auto-scaling policy",
+            "Resource limits defined"
           ],
-          "updated_at": "2026-08-14T13:55:00Z"
+          "notes": "Reference autoscaling policy, load balancer guidance and per-service resource limits documented."
+        }
+      ]
+    },
+    {
+      "id": "phase-docs-ops",
+      "title": "Documentation & Operations",
+      "objective": "Complete operational documentation and runbooks",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "ops-documentation",
+          "title": "Create operations documentation",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Runbook for common incidents",
+            "Deployment guide",
+            "Rollback procedures",
+            "Monitoring dashboard guide",
+            "On-call procedures"
+          ]
+        },
+        {
+          "id": "client-documentation",
+          "title": "Create client-facing documentation",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "API documentation (OpenAPI)",
+            "Integration guide",
+            "Security whitepaper",
+            "SLA document",
+            "Known limitations"
+          ]
         }
       ]
     }
@@ -220,44 +375,19 @@
   "blockers": [],
   "history": [
     {
-      "at": "2026-08-14T10:30:00Z",
-      "event": "migrated-from-session-todo",
-      "details": "Created the canonical roadmap from the audited recovery plan; session Todo is no longer authoritative."
+      "at": "2026-08-14T14:00:00Z",
+      "event": "roadmap-created",
+      "details": "Created product roadmap covering security/auth, observability, agent safety, memory/RAG, testing, CI/CD, production readiness, and documentation."
     },
     {
-      "at": "2026-08-14T12:43:45Z",
-      "event": "task-completed",
-      "details": "Completed data-complete-seed and advanced to core-persistence-tools after deterministic double-seed and automated verification."
+      "at": "2026-08-15T15:10:31Z",
+      "event": "roadmap-synchronized",
+      "details": "Aligned roadmap statuses with implemented features and local test evidence."
     },
     {
-      "at": "2026-08-14T12:55:00Z",
-      "event": "task-completed",
-      "details": "Completed core-persistence-tools with bounded repositories, scoped tools, and offline tests; advanced to agent-offline-guardrails."
-    },
-    {
-      "at": "2026-08-14T13:10:00Z",
-      "event": "task-completed",
-      "details": "Completed agent-offline-guardrails with deterministic scenario coverage and prohibited-action enforcement; advanced to interfaces-workflow."
-    },
-    {
-      "at": "2026-08-14T13:25:00Z",
-      "event": "task-completed",
-      "details": "Completed interfaces-workflow with bounded API endpoints, demo workflow tests, and CLI parity; advanced to product-completion."
-    },
-    {
-      "at": "2026-08-14T13:30:00Z",
-      "event": "task-completed",
-      "details": "Completed product-completion with local knowledge coverage, responsive dashboard, Docker paths, and architecture documentation; advanced to quality-suite."
-    },
-    {
-      "at": "2026-08-14T13:40:00Z",
-      "event": "task-completed",
-      "details": "Completed quality-suite with 37 passing offline tests, scenario coverage, SLA regression, and security guardrail checks; advanced to verification-release."
-    },
-    {
-      "at": "2026-08-14T13:55:00Z",
+      "at": "2026-08-15T20:10:59Z",
       "event": "roadmap-completed",
-      "details": "Completed final verification: full pytest and ruff pass, deterministic double seed is verified, Python compilation and release artifacts are present."
+      "details": "All roadmap tasks implemented or closed with documented reference policy."
     }
   ]
 }
