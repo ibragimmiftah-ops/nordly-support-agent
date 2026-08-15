@@ -194,7 +194,9 @@ jobs:
       - run: docker image inspect "${APP_IMAGE}" --format '{{json .Config.User}}' | grep -q '10001:10001'
       - run: docker compose -f docker-compose.prod.yml up -d --no-build --wait
       - run: curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:8000/ready
-      - run: curl --fail --header 'Authorization: Bearer validation-metrics-token' http://127.0.0.1:8000/metrics | grep -q nordly_http_requests_total
+      - run: >-
+          curl --fail --header 'Authorization: Bearer validation-metrics-token'
+          http://127.0.0.1:8000/metrics | grep -q nordly_http_requests_total
       - if: always()
         run: docker compose -f docker-compose.prod.yml logs --no-color
       - if: always()
