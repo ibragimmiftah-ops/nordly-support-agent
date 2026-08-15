@@ -1,13 +1,13 @@
 """Pydantic schemas and enums for the Nordly Support Agent."""
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
-class SupportCategory(str, Enum):
+class SupportCategory(StrEnum):
     """Support ticket categories."""
 
     AUTHENTICATION = "authentication"
@@ -25,7 +25,7 @@ class SupportCategory(str, Enum):
     OTHER = "other"
 
 
-class Priority(str, Enum):
+class Priority(StrEnum):
     """Support ticket priority levels."""
 
     P1_CRITICAL = "P1"
@@ -34,7 +34,7 @@ class Priority(str, Enum):
     P4_LOW = "P4"
 
 
-class Sentiment(str, Enum):
+class Sentiment(StrEnum):
     """Customer sentiment of the ticket."""
 
     VERY_NEGATIVE = "very_negative"
@@ -44,7 +44,7 @@ class Sentiment(str, Enum):
     VERY_POSITIVE = "very_positive"
 
 
-class ResolutionStatus(str, Enum):
+class ResolutionStatus(StrEnum):
     """Agent resolution decision status."""
 
     RESOLVED = "resolved"
@@ -53,7 +53,7 @@ class ResolutionStatus(str, Enum):
     ESCALATED = "escalated"
 
 
-class EscalationTeam(str, Enum):
+class EscalationTeam(StrEnum):
     """Teams to which cases can be escalated."""
 
     SECURITY = "security"
@@ -62,7 +62,7 @@ class EscalationTeam(str, Enum):
     SENIOR_SUPPORT = "senior_support"
 
 
-class AccountState(str, Enum):
+class AccountState(StrEnum):
     """Account status states."""
 
     ACTIVE = "active"
@@ -73,7 +73,7 @@ class AccountState(str, Enum):
     SECURITY_LOCK = "security_lock"
 
 
-class BillingStatus(str, Enum):
+class BillingStatus(StrEnum):
     """Billing status for subscriptions."""
 
     ACTIVE = "active"
@@ -83,7 +83,7 @@ class BillingStatus(str, Enum):
     PENDING_CANCELLATION = "pending_cancellation"
 
 
-class PlanType(str, Enum):
+class PlanType(StrEnum):
     """Nordly subscription plans."""
 
     STARTER = "Starter"
