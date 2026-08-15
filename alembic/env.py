@@ -28,6 +28,10 @@ def database_url() -> str:
         value = value.replace("{password}", quote(password, safe=""))
     if value.startswith("sqlite:///./"):
         value = f"sqlite:///{Path(value.removeprefix('sqlite:///')).resolve().as_posix()}"
+    elif value.startswith("postgresql://"):
+        value = value.replace("postgresql://", "postgresql+psycopg://", 1)
+    elif value.startswith("postgres://"):
+        value = value.replace("postgres://", "postgresql+psycopg://", 1)
     return value
 
 

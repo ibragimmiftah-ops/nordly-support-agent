@@ -21,7 +21,7 @@ def create_token(
     now = datetime.now(UTC)
     lifetime = (
         timedelta(minutes=settings.access_token_minutes)
-        if token_type == "access"
+        if token_type == "access"  # nosec B105
         else timedelta(days=settings.refresh_token_days)
     )
     payload = {

@@ -83,7 +83,7 @@ async def login(request: LoginRequest):
     return {
         "access_token": create_token(principal, "access"),
         "refresh_token": AuthRepository.create_refresh_session(principal),
-        "token_type": "bearer",
+        "token_type": "bearer",  # nosec B105
     }
 
 
@@ -100,7 +100,7 @@ async def refresh(request: RefreshRequest):
     return {
         "access_token": create_token(principal, "access"),
         "refresh_token": refresh_token,
-        "token_type": "bearer",
+        "token_type": "bearer",  # nosec B105
     }
 
 
