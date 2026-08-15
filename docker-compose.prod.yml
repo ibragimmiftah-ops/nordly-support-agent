@@ -1,0 +1,317 @@
+x-app-common: &app-common
+  image: ${APP_IMAGE:-nordly-support-agent:local}
+  restart: unless-stopped
+  init: true
+  env_file:
+    - path: .env.production
+      required: false
+  environment:
+    DEMO_MODE: "false"
+    OPENAI_API_KEY_FILE: /run/secrets/openai_api_key
+    JWT_SECRET_FILE: /run/secrets/jwt_secret
+    BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/bootstrap_admin_password
+    ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+    METRICS_TOKEN_FILE: /run/secrets/metrics_token
+    REDIS_URL: redis://redis:6379/0
+    BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+    BOOTSTRAP_ADMIN_TENANT: ${BOOTSTRAP_ADMIN_TENANT:-}
+    OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    DATABASE_URL: postgresql://${POSTGRES_USER:-nordly}:{password}@postgres:5432/${POSTGRES_DB:-nordly}
+    DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+    KNOWLEDGE_BASE_PATH: /app/knowledge_base
+    LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000}
+  volumes:
+    - app_data:/var/lib/nordly
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  healthcheck:
+    test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 15s
+  deploy:
+    resources:
+      limits:
+        cpus: "1.00"
+        memory: 768M
+      reservations:
+        cpus: "0.25"
+        memory: 256M
+
+services:
+  app:
+    <<: *app-common
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8000}:8000"
+    secrets:
+      - openai_api_key
+      - postgres_password
+      - jwt_secret
+      - bootstrap_admin_password
+      - encryption_key
+      - metrics_token
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  migrate:
+    <<: *app-common
+    restart: "no"
+    command: [alembic, upgrade, head]
+    secrets:
+      - openai_api_key
+      - postgres_password
+      - jwt_secret
+      - bootstrap_admin_password
+      - encryption_key
+      - metrics_token
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16.4-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nordly}
+      POSTGRES_USER: ${POSTGRES_USER:-nordly}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_wal:/var/lib/postgresql/wal_archive
+    command: >-
+      postgres -c wal_level=replica -c archive_mode=on
+      -c archive_command='test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f'
+      -c max_wal_senders=3 -c password_encryption=scram-sha-256
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    shm_size: 256mb
+    deploy:
+      resources:
+        limits:
+          cpus: "1.50"
+          memory: 1536M
+        reservations:
+          memory: 512M
+
+  redis:
+    image: redis:7.2.5-bookworm
+    restart: unless-stopped
+    command: [redis-server, --appendonly, "yes", --save, "60", "1000", --maxmemory, 256mb, --maxmemory-policy, allkeys-lru]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 384M
+        reservations:
+          memory: 128M
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.25.0
+    restart: unless-stopped
+    command: [--config.file=/etc/blackbox_exporter/config.yml]
+    configs:
+      - source: blackbox_config
+        target: /etc/blackbox_exporter/config.yml
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_URI: postgres:5432/${POSTGRES_DB:-nordly}?sslmode=disable
+      DATA_SOURCE_USER: ${POSTGRES_USER:-nordly}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - export DATA_SOURCE_PASS="$$(cat /run/secrets/postgres_password)"; exec /bin/postgres_exporter
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  prometheus:
+    image: prom/prometheus:v2.54.0
+    restart: unless-stopped
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.path=/prometheus, --storage.tsdb.retention.time=30d, --web.enable-lifecycle]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    secrets:
+      - metrics_token
+    depends_on:
+      app:
+        condition: service_healthy
+      alertmanager:
+        condition: service_started
+    ports:
+      - "${MONITORING_BIND_ADDRESS:-127.0.0.1}:${PROMETHEUS_PORT:-9090}:9090"
+    user: "65534:65534"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: 768M
+
+  grafana:
+    image: grafana/grafana:11.1.4
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    ports:
+      - "${MONITORING_BIND_ADDRESS:-127.0.0.1}:${GRAFANA_PORT:-3000}:3000"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    restart: unless-stopped
+    command: [--config.file=/etc/alertmanager/alertmanager.yml, --storage.path=/alertmanager]
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "${MONITORING_BIND_ADDRESS:-127.0.0.1}:${ALERTMANAGER_PORT:-9093}:9093"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  backup:
+    profiles: [backup]
+    build:
+      context: .
+      target: backup
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:-nordly}
+      PGUSER: ${POSTGRES_USER:-nordly}
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      BACKUP_DIRECTORY: /backups
+      AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?Set BACKUP_AGE_RECIPIENT}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    secrets: [postgres_password]
+    volumes:
+      - ${BACKUP_DIRECTORY:-./backups}:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backup-scheduled:
+    profiles: [scheduled-backup]
+    build:
+      context: .
+      target: backup
+    command: [/usr/local/bin/nordly-backup-scheduled]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: ${POSTGRES_DB:-nordly}
+      PGUSER: ${POSTGRES_USER:-nordly}
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      BACKUP_DIRECTORY: /backups
+      AGE_RECIPIENT: ${BACKUP_AGE_RECIPIENT:?Set BACKUP_AGE_RECIPIENT}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    secrets: [postgres_password]
+    volumes:
+      - ${BACKUP_DIRECTORY:-./backups}:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+configs:
+  blackbox_config:
+    content: |
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 5s
+          http:
+            preferred_ip_protocol: ip4
+
+secrets:
+  openai_api_key:
+    file: ${OPENAI_API_KEY_FILE:-./secrets/openai_api_key.txt}
+  postgres_password:
+    file: ${POSTGRES_PASSWORD_FILE:-./secrets/postgres_password.txt}
+  jwt_secret:
+    file: ${JWT_SECRET_FILE:-./secrets/jwt_secret.txt}
+  bootstrap_admin_password:
+    file: ${BOOTSTRAP_ADMIN_PASSWORD_FILE:-./secrets/bootstrap_admin_password.txt}
+  grafana_admin_password:
+    file: ${GRAFANA_ADMIN_PASSWORD_FILE:-./secrets/grafana_admin_password.txt}
+  encryption_key:
+    file: ${ENCRYPTION_KEY_FILE:-./secrets/encryption_key.txt}
+  metrics_token:
+    file: ${METRICS_TOKEN_FILE:-./secrets/metrics_token.txt}
+
+volumes:
+  app_data:
+  postgres_data:
+  postgres_wal:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:

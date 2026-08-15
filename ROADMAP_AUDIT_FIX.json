@@ -1,0 +1,384 @@
+{
+  "$schema": "file:///C:/Users/Ibragim/.config/opencode/schemas/watchdog-roadmap.schema.json",
+  "version": 1,
+  "project": "nordly-support-agent-audit-fix",
+  "goal": "Close all critical, security, and production gaps identified in the master checklist audit",
+  "status": "active",
+  "current": {
+    "phase_id": "phase-security-auth",
+    "task_id": "auth-implementation"
+  },
+  "updated_at": "2026-08-14T14:00:00Z",
+  "phases": [
+    {
+      "id": "phase-security-auth",
+      "title": "Security & Authentication Foundation",
+      "objective": "Implement authentication, authorization, tenant isolation, and security hardening",
+      "status": "in_progress",
+      "tasks": [
+        {
+          "id": "auth-implementation",
+          "title": "Implement JWT authentication and API key support",
+          "status": "in_progress",
+          "priority": "high",
+          "acceptance_criteria": [
+            "JWT token-based auth for API endpoints",
+            "API key auth for service-to-service calls",
+            "Password hashing with bcrypt",
+            "Token refresh mechanism",
+            "Auth tests pass"
+          ],
+          "notes": "Critical gap: no auth/authorization in current implementation"
+        },
+        {
+          "id": "tenant-isolation",
+          "title": "Implement multi-tenant data isolation",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "tenant_id column in all tables",
+            "Row-level security policies",
+            "Tenant validation in all repositories",
+            "Cross-tenant access blocked in tests"
+          ]
+        },
+        {
+          "id": "security-headers",
+          "title": "Add security headers and HTTPS enforcement",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "CSP headers",
+            "HSTS",
+            "X-Content-Type-Options",
+            "Security middleware tests"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-observability",
+      "title": "Observability & Monitoring",
+      "objective": "Add comprehensive logging, metrics, tracing, and alerting",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "logging-structured",
+          "title": "Implement structured logging with correlation IDs",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "JSON structured logs",
+            "Correlation ID across request lifecycle",
+            "Sensitive data redaction",
+            "Log rotation configuration"
+          ]
+        },
+        {
+          "id": "metrics-prometheus",
+          "title": "Add Prometheus metrics and health checks",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "/metrics endpoint",
+            "Agent run duration histogram",
+            "Tool call counters",
+            "Error rate metrics",
+            "Custom business metrics"
+          ]
+        },
+        {
+          "id": "tracing",
+          "title": "Implement distributed tracing",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "OpenTelemetry integration",
+            "Trace agent runs end-to-end",
+            "Tool call spans",
+            "Database query spans"
+          ]
+        },
+        {
+          "id": "alerting",
+          "title": "Configure alerting rules",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "High error rate alert",
+            "High latency alert",
+            "Agent failure rate alert",
+            "Escalation spike alert"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-agent-safety",
+      "title": "Agent Loop Safety & Limits",
+      "objective": "Implement hard limits, timeouts, and cost controls",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "agent-limits",
+          "title": "Implement agent execution limits",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Max turns per run (configurable, default 10)",
+            "Max tool calls per run (configurable, default 20)",
+            "Max execution time (configurable, default 30s)",
+            "Duplicate tool call detection",
+            "Tests verify limits enforced"
+          ]
+        },
+        {
+          "id": "cost-tracking",
+          "title": "Implement cost tracking and budget controls",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Token usage tracking per run",
+            "Cost estimation per run",
+            "Daily/weekly budget limits",
+            "Budget exceeded alert",
+            "Cost dashboard metrics"
+          ]
+        },
+        {
+          "id": "latency-optimization",
+          "title": "Measure and optimize latency",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Latency histogram per tool",
+            "End-to-end latency tracking",
+            "Slow query identification",
+            "Caching for frequent lookups",
+            "Latency SLO defined"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-memory-rag",
+      "title": "Memory & RAG Enhancement",
+      "objective": "Add long-term memory and improve knowledge retrieval",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "memory-system",
+          "title": "Implement long-term memory system",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Memory schema with source/confidence/timestamp",
+            "Memory CRUD operations",
+            "Deduplication logic",
+            "Memory expiration/retention",
+            "Tenant-scoped memory"
+          ]
+        },
+        {
+          "id": "rag-improvement",
+          "title": "Enhance RAG with embeddings and chunking",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Document chunking strategy",
+            "Embedding-based retrieval",
+            "Relevance scoring",
+            "Citation support",
+            "Document versioning",
+            "RAG eval cases"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-testing-security",
+      "title": "Security Testing & Hardening",
+      "objective": "Close security test gaps and implement security controls",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "security-tests",
+          "title": "Implement comprehensive security tests",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Cross-tenant data access test",
+            "Indirect prompt injection test",
+            "Rate limiting test",
+            "Auth bypass attempt test",
+            "SQL injection attempt test",
+            "Input validation fuzzing"
+          ]
+        },
+        {
+          "id": "rate-limiting",
+          "title": "Implement API rate limiting",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Per-IP rate limits",
+            "Per-user rate limits",
+            "Per-endpoint limits",
+            "Rate limit headers",
+            "429 response handling"
+          ]
+        },
+        {
+          "id": "data-protection",
+          "title": "Implement data protection measures",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "PII detection and redaction",
+            "Data retention policy",
+            "GDPR deletion endpoint",
+            "Audit log for data access",
+            "Encrypted storage for sensitive fields"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-ci-cd",
+      "title": "CI/CD & Deployment Pipeline",
+      "objective": "Implement automated testing, building, and deployment",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "github-actions",
+          "title": "Set up GitHub Actions CI/CD",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Lint check on PR",
+            "Test suite on PR",
+            "Security scan on PR",
+            "Docker build on merge",
+            "Staging deployment auto",
+            "Production deployment manual"
+          ]
+        },
+        {
+          "id": "deployment-config",
+          "title": "Create production deployment configuration",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Docker Compose production",
+            "Environment-specific configs",
+            "Secret management (Vault/Doppler)",
+            "Database migration job",
+            "Health check endpoint",
+            "Graceful shutdown"
+          ]
+        },
+        {
+          "id": "staging-environment",
+          "title": "Set up staging environment",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Staging database",
+            "Staging config",
+            "Smoke tests for staging",
+            "Data seed for staging"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-production-ready",
+      "title": "Production Readiness",
+      "objective": "Make the system production-ready with backups, scaling, and operations",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "database-production",
+          "title": "Migrate to production database",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "PostgreSQL support",
+            "Migration system (Alembic)",
+            "Connection pooling",
+            "Read replicas if needed",
+            "Backup automation"
+          ]
+        },
+        {
+          "id": "backup-restore",
+          "title": "Implement backup and disaster recovery",
+          "status": "pending",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Automated daily backups",
+            "Point-in-time recovery",
+            "Backup encryption",
+            "Restore tested monthly",
+            "RTO/RPO defined"
+          ]
+        },
+        {
+          "id": "scaling",
+          "title": "Prepare for horizontal scaling",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Stateless application design",
+            "Redis for caching/sessions",
+            "Load balancer ready",
+            "Auto-scaling policy",
+            "Resource limits defined"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-docs-ops",
+      "title": "Documentation & Operations",
+      "objective": "Complete operational documentation and runbooks",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "ops-documentation",
+          "title": "Create operations documentation",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Runbook for common incidents",
+            "Deployment guide",
+            "Rollback procedures",
+            "Monitoring dashboard guide",
+            "On-call procedures"
+          ]
+        },
+        {
+          "id": "client-documentation",
+          "title": "Create client-facing documentation",
+          "status": "pending",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "API documentation (OpenAPI)",
+            "Integration guide",
+            "Security whitepaper",
+            "SLA document",
+            "Known limitations"
+          ]
+        }
+      ]
+    }
+  ],
+  "blockers": [],
+  "history": [
+    {
+      "at": "2026-08-14T14:00:00Z",
+      "event": "audit-roadmap-created",
+      "details": "Created roadmap to address all gaps from master checklist audit: security/auth, observability, agent safety, memory/RAG, testing, CI/CD, production readiness, and documentation."
+    }
+  ]
+}

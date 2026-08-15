@@ -1,0 +1,57 @@
+groups:
+  - name: nordly-availability
+    rules:
+      - alert: NordlyAppDown
+        expr: probe_success{job="app-health"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: nordly-support-agent
+        annotations:
+          summary: Nordly API health check is failing
+          runbook_url: docs/ops-runbook.md#application-unavailable
+
+      - alert: PostgreSQLExporterDown
+        expr: up{job="postgres"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL monitoring is unavailable
+
+      - alert: RedisExporterDown
+        expr: up{job="redis"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Redis monitoring is unavailable
+
+      - alert: PostgreSQLConnectionsHigh
+        expr: sum(pg_stat_activity_count) / clamp_min(sum(pg_settings_max_connections), 1) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: PostgreSQL connection utilization is above 80 percent
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / clamp_min(redis_memory_max_bytes, 1) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Redis memory utilization is above 85 percent
+
+  - name: nordly-support-operations
+    rules:
+      - alert: EscalationSpike
+        expr: sum(increase(nordly_ticket_escalations_total[15m])) > 20 and sum(increase(nordly_ticket_escalations_total[15m])) > 2 * sum(increase(nordly_ticket_escalations_total[15m] offset 1h))
+        for: 5m
+        labels:
+          severity: critical
+          team: support-operations
+        annotations:
+          summary: Escalations increased sharply
+          description: More than 20 escalations occurred in 15 minutes and volume is over twice the comparable window one hour ago.
+          runbook_url: docs/on-call.md#escalation-spike

@@ -1,0 +1,122 @@
+services:
+  app:
+    image: ${APP_IMAGE:-nordly-support-agent:staging}
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    init: true
+    environment:
+      DEMO_MODE: "false"
+      OPENAI_API_KEY_FILE: /run/secrets/openai_api_key
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      BOOTSTRAP_ADMIN_USERNAME: ${STAGING_ADMIN_USERNAME:-ci-admin}
+      BOOTSTRAP_ADMIN_TENANT: ${STAGING_ADMIN_TENANT:-ci-staging}
+      BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/bootstrap_admin_password
+      ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      METRICS_TOKEN_FILE: /run/secrets/metrics_token
+      REDIS_URL: redis://redis:6379/0
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      DATABASE_URL: postgresql://nordly:{password}@postgres:5432/nordly_staging
+      DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+      KNOWLEDGE_BASE_PATH: /app/knowledge_base
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:18000}
+    secrets:
+      - openai_api_key
+      - postgres_password
+      - jwt_secret
+      - bootstrap_admin_password
+      - encryption_key
+      - metrics_token
+    ports:
+      - "127.0.0.1:${STAGING_PORT:-18000}:8000"
+    read_only: true
+    tmpfs: [/tmp:size=64m,mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+
+  postgres:
+    image: postgres:16.4-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nordly_staging
+      POSTGRES_USER: nordly
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U nordly -d nordly_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  redis:
+    image: redis:7.2.5-bookworm
+    restart: unless-stopped
+    command: [redis-server, --appendonly, "yes", --maxmemory, 128mb, --maxmemory-policy, allkeys-lru]
+    volumes:
+      - staging_redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+        memory: 192M
+
+  migrate:
+    image: ${APP_IMAGE:-nordly-support-agent:staging}
+    command: [alembic, upgrade, head]
+    environment:
+      DATABASE_URL: postgresql://nordly:{password}@postgres:5432/nordly_staging
+      DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+secrets:
+  openai_api_key:
+    file: ${STAGING_OPENAI_API_KEY_FILE:-./secrets/staging_openai_api_key.txt}
+  postgres_password:
+    file: ${STAGING_POSTGRES_PASSWORD_FILE:-./secrets/staging_postgres_password.txt}
+  jwt_secret:
+    file: ${STAGING_JWT_SECRET_FILE:-./secrets/staging_jwt_secret.txt}
+  bootstrap_admin_password:
+    file: ${STAGING_BOOTSTRAP_ADMIN_PASSWORD_FILE:-./secrets/staging_bootstrap_admin_password.txt}
+  encryption_key:
+    file: ${STAGING_ENCRYPTION_KEY_FILE:-./secrets/staging_encryption_key.txt}
+  metrics_token:
+    file: ${STAGING_METRICS_TOKEN_FILE:-./secrets/staging_metrics_token.txt}
+
+volumes:
+  staging_postgres_data:
+  staging_redis_data:

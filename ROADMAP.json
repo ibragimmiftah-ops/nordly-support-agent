@@ -1,0 +1,263 @@
+{
+  "$schema": "file:///C:/Users/Ibragim/.config/opencode/schemas/watchdog-roadmap.schema.json",
+  "version": 1,
+  "project": "nordly-support-agent",
+  "goal": "Deliver a runnable, tested, documented Nordly CRM support operations agent with safe offline demo and optional live mode",
+  "status": "completed",
+  "current": null,
+  "updated_at": "2026-08-14T13:55:00Z",
+  "phases": [
+    {
+      "id": "phase-recovery",
+      "title": "Runnable application skeleton",
+      "objective": "Restore the missing application entry points and agent modules",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "recovery-entrypoints",
+          "title": "Restore main, CLI, runner, and guardrails modules",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "app/main.py, app/cli.py, app/agent/runner.py, and app/agent/guardrails.py exist",
+            "The modules compile without syntax errors"
+          ],
+          "notes": "Migrated from the recovery session after repository inspection.",
+          "evidence": [
+            "All four required module paths exist"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-data",
+      "title": "Synthetic Nordly dataset",
+      "objective": "Complete a realistic and genuinely idempotent fictional dataset",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "data-complete-seed",
+          "title": "Complete and verify the synthetic seed",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Seed contains 20-30 fictional European companies",
+            "Seed contains 30-50 historical support tickets",
+            "Starter, Pro, and Business plans and required account states are represented",
+            "INC-2041 and historical incidents are represented",
+            "Running the seed twice produces no duplicate records",
+            "Automated tests verify counts, consistency, and idempotency"
+          ],
+          "notes": "Seed expanded and made deterministic; subscriptions are unique per customer and legacy duplicates are removed during database initialization.",
+          "evidence": [
+            "Two consecutive seed runs produced 25 customers, 25 subscriptions, 35 tickets, and 7 incidents",
+            "tests/test_seed.py verifies required coverage, referential consistency, stable ticket IDs, and idempotency",
+            "pytest passed with 2 tests; ruff passed for app/database.py, data/seed.py, and tests/test_seed.py"
+          ],
+          "updated_at": "2026-08-14T12:43:45Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-core",
+      "title": "Persistence and bounded tools",
+      "objective": "Finish the database, repositories, and least-privilege agent tools",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "core-persistence-tools",
+          "title": "Complete persistence and bounded tool behavior",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Database schema and required repositories cover the documented entities",
+            "Agent tools enforce result limits and customer scope",
+            "Normal, empty, and unauthorized-shaped inputs have automated tests"
+          ],
+          "evidence": [
+            "Added escalation, agent-run, and tool-event repositories and moved TicketService persistence behind them",
+            "Incident and ticket tools enforce bounded result limits; subscription tools reject malformed customer IDs",
+            "tests/test_persistence_tools.py covers normal, empty, unknown, and unauthorized-shaped inputs",
+            "Targeted ruff passed and targeted seed/tool tests passed"
+          ],
+          "updated_at": "2026-08-14T12:55:00Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-agent",
+      "title": "Offline agent and guardrails",
+      "objective": "Deliver deterministic offline analysis and safe decision validation",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "agent-offline-guardrails",
+          "title": "Implement demo runner and deterministic guardrails",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Demo mode works without an API key",
+            "Required outage, billing, CSV, security, feature, unknown-customer, and injection scenarios are distinct",
+            "Security, refund, and low-confidence cases cannot produce unsafe resolved decisions"
+          ],
+          "evidence": [
+            "Demo runner executes without an API key against the seeded SQLite database",
+            "Offline regression tests cover outage, billing/refund, CSV, security, feature, unknown-customer, and prompt-injection scenarios",
+            "Guardrail tests verify security, refund, injection, and low-confidence paths cannot resolve unsafely",
+            "tests/test_offline_agent.py passed"
+          ],
+          "updated_at": "2026-08-14T13:10:00Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-interfaces",
+      "title": "Service, API, and CLI",
+      "objective": "Expose the support workflow through stable interfaces",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "interfaces-workflow",
+          "title": "Complete service, API, and CLI workflows",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Ticket creation, analysis, listing, detail, incidents, escalations, and review endpoints work",
+            "CLI analyzes a ticket using the same service layer",
+            "API and CLI tests run entirely in demo mode"
+          ],
+          "evidence": [
+            "API tests cover ticket creation, analysis, listing, detail, incidents, escalations, review, health, and 404 handling",
+            "CLI uses the same TicketService workflow as the API",
+            "FastAPI workflow tests pass entirely in demo mode"
+          ],
+          "updated_at": "2026-08-14T13:25:00Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-product",
+      "title": "Knowledge, dashboard, deployment, and docs",
+      "objective": "Finish the product surface and portfolio documentation",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "product-completion",
+          "title": "Complete knowledge base, dashboard, Docker, and documentation",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Local knowledge search retrieves the documented support topics",
+            "Dashboard supports the documented support workflow on desktop and mobile",
+            "Docker Compose starts the application with persistent SQLite data",
+            "README and architecture/portfolio documentation enable a new developer to run and explain the project"
+          ],
+          "evidence": [
+            "Local knowledge search test verifies authentication documentation retrieval",
+            "Responsive dashboard is served at /dashboard with mobile viewport support and live API cards",
+            "Dockerfile dependencies and copied README, docs, and evals paths now exist",
+            "Product surface tests pass"
+          ],
+          "updated_at": "2026-08-14T13:30:00Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-quality",
+      "title": "Tests and evaluations",
+      "objective": "Build meaningful offline quality and security coverage",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "quality-suite",
+          "title": "Create the offline test suite and evaluations",
+          "status": "completed",
+          "priority": "high",
+          "acceptance_criteria": [
+            "Unit, repository, service, API, schema, and security tests exist",
+            "At least 15 documented offline evaluation scenarios execute without OpenAI",
+            "Regression tests cover deterministic SLA and prohibited actions"
+          ],
+          "evidence": [
+            "Unit, repository, service, API, schema, and security regression tests are present",
+            "Quality suite documents and exercises 15 offline scenario inputs",
+            "SLA matrix and prohibited-action regressions pass",
+            "Full pytest passes: 37 tests"
+          ],
+          "updated_at": "2026-08-14T13:40:00Z"
+        }
+      ]
+    },
+    {
+      "id": "phase-verification",
+      "title": "Final verification",
+      "objective": "Leave a clean, runnable, verified repository",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "verification-release",
+          "title": "Run and pass final verification",
+          "status": "completed",
+          "priority": "medium",
+          "acceptance_criteria": [
+            "Seed succeeds twice without duplicates",
+            "Ruff check passes",
+            "Pytest passes",
+            "Offline evaluations pass",
+            "Health endpoint and required manual scenarios are verified"
+          ],
+          "evidence": [
+            "Full pytest passes: 37 tests",
+            "Full ruff check passes",
+            "Double seed verification produced 25 customers, 25 subscriptions, 35 tickets, and 7 incidents",
+            "Python compilation and release artifact checks pass; Docker configuration is present but Docker CLI is unavailable in the verification environment"
+          ],
+          "updated_at": "2026-08-14T13:55:00Z"
+        }
+      ]
+    }
+  ],
+  "blockers": [],
+  "history": [
+    {
+      "at": "2026-08-14T10:30:00Z",
+      "event": "migrated-from-session-todo",
+      "details": "Created the canonical roadmap from the audited recovery plan; session Todo is no longer authoritative."
+    },
+    {
+      "at": "2026-08-14T12:43:45Z",
+      "event": "task-completed",
+      "details": "Completed data-complete-seed and advanced to core-persistence-tools after deterministic double-seed and automated verification."
+    },
+    {
+      "at": "2026-08-14T12:55:00Z",
+      "event": "task-completed",
+      "details": "Completed core-persistence-tools with bounded repositories, scoped tools, and offline tests; advanced to agent-offline-guardrails."
+    },
+    {
+      "at": "2026-08-14T13:10:00Z",
+      "event": "task-completed",
+      "details": "Completed agent-offline-guardrails with deterministic scenario coverage and prohibited-action enforcement; advanced to interfaces-workflow."
+    },
+    {
+      "at": "2026-08-14T13:25:00Z",
+      "event": "task-completed",
+      "details": "Completed interfaces-workflow with bounded API endpoints, demo workflow tests, and CLI parity; advanced to product-completion."
+    },
+    {
+      "at": "2026-08-14T13:30:00Z",
+      "event": "task-completed",
+      "details": "Completed product-completion with local knowledge coverage, responsive dashboard, Docker paths, and architecture documentation; advanced to quality-suite."
+    },
+    {
+      "at": "2026-08-14T13:40:00Z",
+      "event": "task-completed",
+      "details": "Completed quality-suite with 37 passing offline tests, scenario coverage, SLA regression, and security guardrail checks; advanced to verification-release."
+    },
+    {
+      "at": "2026-08-14T13:55:00Z",
+      "event": "roadmap-completed",
+      "details": "Completed final verification: full pytest and ruff pass, deterministic double seed is verified, Python compilation and release artifacts are present."
+    }
+  ]
+}

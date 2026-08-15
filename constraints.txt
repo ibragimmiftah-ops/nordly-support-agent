@@ -1,0 +1,27 @@
+# Production constraints. Regenerate after reviewing release notes and security advisories:
+# python -m pip install pip-tools && pip-compile --strip-extras -o constraints.txt pyproject.toml
+fastapi==0.116.1
+uvicorn==0.35.0
+pydantic==2.11.7
+email-validator==2.2.0
+pydantic-settings==2.10.1
+openai==1.99.9
+openai-agents==0.21.0
+jinja2==3.1.6
+python-multipart==0.0.20
+httpx==0.28.1
+rich==14.1.0
+pyjwt==2.10.1
+bcrypt==4.3.0
+prometheus-client==0.22.1
+slowapi==0.1.9
+structlog==25.4.0
+python-json-logger==3.3.0
+psycopg==3.2.9
+psycopg-binary==3.2.9
+alembic==1.16.4
+sqlalchemy==2.0.43
+opentelemetry-sdk==1.36.0
+opentelemetry-exporter-otlp==1.36.0
+opentelemetry-instrumentation-fastapi==0.57b0
+opentelemetry-instrumentation-psycopg==0.57b0

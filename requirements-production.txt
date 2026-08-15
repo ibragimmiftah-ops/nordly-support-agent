@@ -1,0 +1,29 @@
+-c constraints.txt
+fastapi
+uvicorn[standard]
+pydantic
+email-validator
+pydantic-settings
+openai
+openai-agents
+jinja2
+python-multipart
+httpx
+rich
+pyjwt
+bcrypt
+prometheus-client
+slowapi
+structlog
+python-json-logger
+psycopg[binary]
+redis
+cryptography
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-psycopg
+
+# Operational migration tooling.
+alembic
+sqlalchemy
